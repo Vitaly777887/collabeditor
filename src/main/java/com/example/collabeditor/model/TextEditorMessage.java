@@ -2,12 +2,20 @@ package com.example.collabeditor.model;
 
 
 public class TextEditorMessage {
-    public String type;
+    public MessageType type;
     public String data;
     public Integer from;
     public Integer to;
     public Integer revision;
+    private String filename;
 
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 
     public enum MessageType {
         DELETE,
@@ -18,11 +26,11 @@ public class TextEditorMessage {
     public TextEditorMessage() {
     }
 
-    public String getType() {
+    public MessageType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(MessageType type) {
         this.type = type;
     }
 
@@ -58,7 +66,7 @@ public class TextEditorMessage {
         this.revision = revision;
     }
 
-    public TextEditorMessage(String type, String data, Integer from, Integer to, Integer revision) {
+    public TextEditorMessage(MessageType type, String data, Integer from, Integer to, Integer revision) {
 
         this.type = type;
         this.data = data;

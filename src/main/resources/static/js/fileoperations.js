@@ -42,10 +42,12 @@ $("#new").click(function (e) {
         contentType: false,
         processData: false,
         success: function (response) {
+            leave();
             textarea.value = "";
             revision = 0;
             $("#fileName").text("Filename: " + response);
             console.log("new rev= ", revision);
+            join();
         },
         error: function () {
             alert("fail")
@@ -81,9 +83,11 @@ $("#fileupload").change(function (e) {
             contentType: false,
             processData: false,
             success: function (response) {
+                leave();
                 $("#fileName").text("Filename: " + file.name);
                 revision = 0;
                 console.log("load rev= ", revision);
+                join();
             },
             error: function () {
                 alert("fail")
@@ -97,7 +101,6 @@ $("#fileupload").change(function (e) {
 
 $("#open").click(function (e) {
     e.preventDefault();
-
     $("#open").hide();
     $("#chooseFile").show();
     $.ajax({
@@ -129,10 +132,12 @@ $("#chooseFile").change(function () {
         contentType: false,
         processData: false,
         success: function (response) {
+            leave();
             textarea.value = response[0];
             revision = +response[1];
             $("#fileName").text("Filename: " + filename);
             console.log("choose rev= ", revision);
+            join();
         },
         error: function () {
             alert("fail")

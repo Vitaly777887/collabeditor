@@ -2,6 +2,7 @@ package com.example.collabeditor.service;
 
 import com.example.collabeditor.model.TextEditorMessage;
 import org.springframework.stereotype.Service;
+
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,10 +14,21 @@ public class TextEditorService {
     private static Map<String, AtomicInteger> revisions;
     private static Map<String, AtomicInteger> fileStorageRevisions;
 
+    private static Map<String, String> users;
+
     static {
         editorMessageHashMap = new ConcurrentHashMap<>();
         revisions = new ConcurrentHashMap<>();
-        fileStorageRevisions= new ConcurrentHashMap<>();
+        fileStorageRevisions = new ConcurrentHashMap<>();
+        users = new ConcurrentHashMap<>();
+    }
+
+    public void put(String user, String filename) {
+        users.put(user, filename);
+    }
+
+    public String get(String user) {
+        return users.get(user);
     }
 
     synchronized static public boolean addMessage(String filename, TextEditorMessage tem) {
@@ -30,22 +42,24 @@ public class TextEditorService {
 
     }
 
-
     public TextEditorMessage inc(TextEditorMessage serverChange, TextEditorMessage localChange) {
+
         if ("INSERT".equals(localChange.type)) {
-            if (serverChange.getFrom() > localChange.getFrom()) {
-                serverChange.setFrom(serverChange.getFrom() + 1);
-                serverChange.setTo(serverChange.getTo() + 1);
+            if (serverChange.getTo() >= localChange.getTo()) {
+                int delta = serverChange.getData().length();
+                localChange.setFrom(localChange.getFrom() + delta);
+                localChange.setTo(localChange.getTo() + delta);
             }
 
         } else if ("DELETE".equals(localChange.type)) {
-            if (serverChange.getFrom() > localChange.getFrom()) {
-                serverChange.setFrom(serverChange.getFrom() - 1);
-                serverChange.setTo(serverChange.getTo() - 1);
+            int delta = serverChange.getData() == null ? 1 : serverChange.getData().length();
+            if (serverChange.getTo() >= localChange.getTo()) {
+                localChange.setFrom(localChange.getFrom() - delta);
+                localChange.setTo(localChange.getTo() - delta);
             }
         }
+        serverChange.setRevision(serverChange.getRevision() + 1);
         return serverChange;
-
     }
 
     public TextEditorMessage[] getNewTEM(String filename, Integer revision) {
@@ -90,19 +104,20 @@ public class TextEditorService {
         return 0;
     }
 
-
     public String saveFile(String filename, String file) {
+        if (!fileStorageRevisions.containsKey(filename)) {
+            fileStorageRevisions.put(filename, new AtomicInteger());
+        }
+        int countSaveRevisions = getRevision(filename);
+        fileStorageRevisions.get(filename).addAndGet(countSaveRevisions);
+        LinkedList<TextEditorMessage> getSaveTem = new LinkedList<>();
+        for (int i = 0; i < countSaveRevisions; i++) {
 
-            int countSaveRevisions = getRevision(filename) ;
-            fileStorageRevisions.get(filename).addAndGet(countSaveRevisions);
-            LinkedList<TextEditorMessage> getSaveTem = new LinkedList<>();
-            for (int i = 0; i < countSaveRevisions; i++) {
-
-                getSaveTem.addLast(editorMessageHashMap.get(filename).removeFirst());
-            }
-            for (TextEditorMessage tem : getSaveTem) {
-                file=apply(file, tem);
-            }
+            getSaveTem.addLast(editorMessageHashMap.get(filename).removeFirst());
+        }
+        for (TextEditorMessage tem : getSaveTem) {
+            file = apply(file, tem);
+        }
 
         return file;
     }

@@ -5,6 +5,15 @@ public class ChatMessage {
     private MessageType type;
     private String content;
     private String sender;
+    private String filename;
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 
     public enum MessageType {
         CHAT,

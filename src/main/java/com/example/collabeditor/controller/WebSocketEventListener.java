@@ -1,6 +1,7 @@
 package com.example.collabeditor.controller;
 
 import com.example.collabeditor.model.ChatMessage;
+import com.example.collabeditor.service.TextEditorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,9 @@ public class WebSocketEventListener {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
 
     @Autowired
+    TextEditorService service;
+
+    @Autowired
     private SimpMessageSendingOperations messagingTemplate;
 
     @EventListener
@@ -29,13 +33,14 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
         String username = (String) headerAccessor.getSessionAttributes().get("username");
+        String filename = service.get(username);
         if (username != null) {
             logger.info("User Disconnected : " + username);
 
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setType(ChatMessage.MessageType.LEAVE);
             chatMessage.setSender(username);
-
+            chatMessage.setFilename(filename);
             messagingTemplate.convertAndSend("/topic/public", chatMessage);
         }
     }

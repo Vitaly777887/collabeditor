@@ -97,7 +97,7 @@ public class FileController {
     public String saveFile(@RequestParam("filename") String filename) throws IOException {
         Path path = Paths.get(directory + File.separator + filename + ".txt");
         String resFile = service.saveFile(filename, new String(Files.readAllBytes(path)));
-        if(!resFile.equals("")){
+        if (!resFile.equals("")) {
             Files.write(path, resFile.getBytes());
         }
         return filename;

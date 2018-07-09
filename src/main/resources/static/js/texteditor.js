@@ -14,15 +14,25 @@ function apply(ot) {
 
     var text = textarea.value;
     var caret = $("#textarea").caret();
-    console.log("OT: " + ot.data)
+    console.log("OT: " + ot.data);
     if (ot.type == "INSERT") {
 
         textarea.value = text.substring(0, ot.from) + ot.data + text.substring(ot.from);
-        $("#textarea").caret(caret + ot.from - ot.to + 1);
+        if (caret >= ot.from) {
+            $("#textarea").caret(caret + ot.to - ot.from);
+        }
+        else {
+            $("#textarea").caret(caret);
+        }
     }
     else if (ot.type == "DELETE") {
         textarea.value = text.substring(0, ot.to) + text.substring(ot.from);
-        $("#textarea").caret(caret - ot.from + ot.to + 1)
+        if (caret > ot.to) {
+            $("#textarea").caret(caret + ot.from - ot.to - 2);
+        }
+        else {
+            $("#textarea").caret(caret);
+        }
     }
 }
 
@@ -40,102 +50,71 @@ function getChar(event) {
     return null;
 }
 
-setInterval(checkChanges, 700);
-
-function checkChanges() {
-    if (getFilename() != "none"&&getFilename()!=null) {
-
-        var formData = new FormData();
-        formData.append("type", "CHECK");
-        formData.append("data", "")
-        formData.append("filename", getFilename());
-        formData.append("revision", revision);
-        formData.append("from", 0);
-        formData.append("to", 0);
-        $.ajax({
-            url: "/ot",
-            type: "POST",
-            data: formData,
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                revision += response.length;
-                response.forEach(function (ot) {
-                    apply(ot)
-                });
-                console.log("rev " + revision + response);
-            },
-            error: function () {
-                console.log("fail")
-            }
-        })
-    }
-}
-
-textarea.onkeyup = function (event) {
-    if (event.keyCode == 8) {
-
+textarea.onkeydown = function (event) {
+    if (event.keyCode == 8 && getFilename() != "none" && stompClient) {
         var caret = $("#textarea").caret();
-        var formData = new FormData();
-        formData.append("type", "DELETE");
-        formData.append("data", "");
-        formData.append("from", caret + 1);
-        formData.append("to", caret);
-        formData.append("filename", getFilename());
-        formData.append("revision", revision);
-        $.ajax({
-            url: "/ot",
-            type: "POST",
-            data: formData,
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                revision += response.length + 1;
-                response.forEach(function (ot) {
-                    apply(ot)
-                });
-                console.log("rev " + revision + response);
-            },
-            error: function () {
-                alert("fail")
-            }
-        })
+
+        if (caret != 0) {
+            sent("DELETE", " ", caret);
+        }
+        event.preventDefault();
     }
+};
+
+$("#textarea").on('paste cut', function (e) {
+    var caret = $("#textarea").caret();
+    var data;
+
+    if (e.type == "paste") {
+        data = e.originalEvent.clipboardData.getData('text');
+        sent("INSERT", data, caret);
+    }
+    else {
+        data = window.getSelection().toString();
+        sent("DELETE", data, caret + data.length);
+    }
+    e.preventDefault();
+
+});
+
+textarea.onkeypress = function (e) {
+
+    if (getFilename() != "none" && stompClient) {
+
+        if (e.code == "KeyZ") {
+            return true;
+        }
+        var caret = $("#textarea").caret();
+        var char = getChar(e);
+        sent("INSERT", char, caret);
+    }
+    e.preventDefault();
 
 };
 
-textarea.onkeypress = function (e) {
-    if (getFilename() != "none") {
+function sent(type, data, caretFrom) {
+    var textEditorMessage;
 
-        var char = getChar(e);
-        var caret = $("#textarea").caret();
-        var formData = new FormData();
-        formData.append("type", "INSERT");
-        formData.append("data", char);
-        formData.append("from", caret);
-        formData.append("to", caret + 1);
-        formData.append("filename", getFilename());
-        formData.append("revision", revision);
-        $.ajax({
-            url: "/ot",
-            type: "POST",
-            data: formData,
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                revision += response.length + 1;
-                response.forEach(function (ot) {
-                    apply(ot)
-                });
-                console.log("rev " + revision + response);
-            },
-            error: function () {
-                alert("fail")
-            }
-        })
+    if (type == "DELETE") {
+        textEditorMessage = {
+            from: caretFrom,
+            to: caretFrom - data.length,
+            type: type,
+            filename: getFilename(),
+            revision: revision
+        };
     }
+    else if (type == "INSERT") {
+        textEditorMessage = {
+            from: caretFrom,
+            to: caretFrom + data.length,
+            data: data,
+            type: type,
+            filename: getFilename(),
+            revision: revision
+        };
+    }
+    stompClient.send("/app/textArea.sendChange", {}, JSON.stringify(textEditorMessage));
 }
+
 
