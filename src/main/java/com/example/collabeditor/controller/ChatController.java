@@ -26,8 +26,6 @@ public class ChatController {
     public ChatMessage addUser(@Payload ChatMessage chatMessage,
                                SimpMessageHeaderAccessor headerAccessor) {
         headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
-
-        service.put(chatMessage.getSender(), chatMessage.getFilename());
         return chatMessage;
     }
 }

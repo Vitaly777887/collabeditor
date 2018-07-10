@@ -4,7 +4,7 @@ function getFilename() {
     return $("#fileName").text().replace("Filename: ", "");
 }
 
-setInterval(saveFile, 20000);
+//setInterval(saveFile, 20000);
 
 function saveFile() {
     if (getFilename() != "none") {
@@ -74,7 +74,7 @@ $("#fileupload").change(function (e) {
         reader.readAsText(file, 'cp1251'); // for windows
 
         var formData = new FormData();
-        formData.append('file', file, file.name);
+        formData.append('file', file, file.name.replace(".txt", ""));
         $.ajax({
             url: "/uploadFile",
             type: "POST",
@@ -84,7 +84,7 @@ $("#fileupload").change(function (e) {
             processData: false,
             success: function (response) {
                 leave();
-                $("#fileName").text("Filename: " + file.name);
+                $("#fileName").text("Filename: " + response);
                 revision = 0;
                 console.log("load rev= ", revision);
                 join();
@@ -134,7 +134,7 @@ $("#chooseFile").change(function () {
         success: function (response) {
             leave();
             textarea.value = response[0];
-            revision = +response[1];
+            revision = response[1];
             $("#fileName").text("Filename: " + filename);
             console.log("choose rev= ", revision);
             join();

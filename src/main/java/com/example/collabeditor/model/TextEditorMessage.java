@@ -1,21 +1,26 @@
 package com.example.collabeditor.model;
 
+import javax.persistence.*;
 
+@Entity
 public class TextEditorMessage {
-    public MessageType type;
-    public String data;
-    public Integer from;
-    public Integer to;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Integer id;
+
     public Integer revision;
-    private String filename;
 
-    public String getFilename() {
-        return filename;
-    }
+    public MessageType type;
 
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
+    public String filename;
+
+    public String data;
+
+    @Column(name = "FROMQ")
+    public Integer from;
+
+    public Integer to;
 
     public enum MessageType {
         DELETE,
@@ -23,7 +28,12 @@ public class TextEditorMessage {
         CHECK
     }
 
-    public TextEditorMessage() {
+    public String getFilename() {
+        return getFilename2();
+    }
+
+    public String getFilename2() {
+        return filename;
     }
 
     public MessageType getType() {
@@ -64,6 +74,9 @@ public class TextEditorMessage {
 
     public void setRevision(Integer revision) {
         this.revision = revision;
+    }
+
+    public TextEditorMessage() {
     }
 
     public TextEditorMessage(MessageType type, String data, Integer from, Integer to, Integer revision) {
