@@ -13,7 +13,7 @@ import org.springframework.stereotype.Controller;
 public class ChatController {
 
     @Autowired
-    TextEditorService service;
+    private TextEditorService service;
 
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")

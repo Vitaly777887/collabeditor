@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-
 @RestController
 public class FileController {
 
@@ -47,8 +46,7 @@ public class FileController {
 
     @RequestMapping(value = "/chooseFile", method = RequestMethod.POST)
     public String[] chooseFile(@RequestParam("filename") String filename) throws IOException {
-        String[] res = {service.apply(filename, fileService.findByFilename(filename).getFile())
+        return new String[]{service.apply(filename, fileService.findByFilename(filename).getFile())
                 , "" + temService.findMaxRevisionByFilename(filename)};
-        return res;
     }
 }

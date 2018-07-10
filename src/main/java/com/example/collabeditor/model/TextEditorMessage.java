@@ -29,10 +29,6 @@ public class TextEditorMessage {
     }
 
     public String getFilename() {
-        return getFilename2();
-    }
-
-    public String getFilename2() {
         return filename;
     }
 

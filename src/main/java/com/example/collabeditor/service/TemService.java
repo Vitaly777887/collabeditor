@@ -16,9 +16,6 @@ public class TemService {
     @Autowired
     private TemRepository temRepository;
 
-    @Autowired
-    private FileRepository fileRepository;
-
     public boolean save(TextEditorMessage tem) {
         return temRepository.save(tem) == tem;
     }

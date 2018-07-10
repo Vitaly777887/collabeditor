@@ -14,14 +14,14 @@ public class TextEditorService {
 
     public TextEditorMessage inc(TextEditorMessage serverChange, TextEditorMessage localChange) {
 
-        if ("INSERT".equals(localChange.type)) {
+        if (localChange.type == TextEditorMessage.MessageType.INSERT) {
             if (serverChange.getTo() >= localChange.getTo()) {
                 int delta = serverChange.getData().length();
                 localChange.setFrom(localChange.getFrom() + delta);
                 localChange.setTo(localChange.getTo() + delta);
             }
 
-        } else if ("DELETE".equals(localChange.type)) {
+        } else if (localChange.type == TextEditorMessage.MessageType.DELETE) {
             int delta = serverChange.getData() == null ? 1 : serverChange.getData().length();
             if (serverChange.getTo() >= localChange.getTo()) {
                 localChange.setFrom(localChange.getFrom() - delta);
@@ -33,11 +33,9 @@ public class TextEditorService {
     }
 
     public TextEditorMessage[] getNewTEM(String filename, Integer revision) {
-        TextEditorMessage[] textEditorMessages = StreamSupport.stream(temService.findByFilenameOrderByRevision(filename).spliterator(), false)
+        return StreamSupport.stream(temService.findByFilenameOrderByRevision(filename).spliterator(), false)
                 .filter(tem -> tem.getRevision() > revision).toArray(TextEditorMessage[]::new);
-        return textEditorMessages;
     }
-
 
     public String apply(String filename, String file) {
         for (TextEditorMessage tem : temService.findByFilenameOrderByRevision(filename)) {
