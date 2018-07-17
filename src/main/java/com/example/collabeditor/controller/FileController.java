@@ -3,7 +3,7 @@ package com.example.collabeditor.controller;
 import com.example.collabeditor.model.FileObject;
 import com.example.collabeditor.service.FileService;
 import com.example.collabeditor.service.TemService;
-import com.example.collabeditor.service.TextEditorService;
+import com.example.collabeditor.service.OTService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,7 +17,7 @@ import java.io.IOException;
 public class FileController {
 
     @Autowired
-    private TextEditorService service;
+    private OTService otService;
 
     @Autowired
     private FileService fileService;
@@ -27,7 +27,7 @@ public class FileController {
 
     @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
     public String uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        fileService.save(new FileObject(file.getOriginalFilename(), new String(file.getBytes(), "Windows-1251")));
+        fileService.save(fileService.createFileObject(file));
         return file.getOriginalFilename();
     }
 
@@ -39,14 +39,12 @@ public class FileController {
 
     @RequestMapping(value = "/listFiles", method = RequestMethod.GET)
     public String[] listFiles() {
-        return fileService.findAll().stream()
-                .map(s -> s.getFilename().replace(".txt", ""))
-                .toArray(String[]::new);
+        return fileService.getFileNames();
     }
 
     @RequestMapping(value = "/chooseFile", method = RequestMethod.POST)
-    public String[] chooseFile(@RequestParam("filename") String filename) throws IOException {
-        return new String[]{service.apply(filename, fileService.findByFilename(filename).getFile())
+    public String[] chooseFile(@RequestParam("filename") String filename) {
+        return new String[]{otService.apply(filename, fileService.findByFilename(filename).getFile())
                 , "" + temService.findMaxRevisionByFilename(filename)};
     }
 }

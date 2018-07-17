@@ -1,34 +1,18 @@
 'use strict';
 
+var $chooseFile = $("#chooseFile"),
+    $fileUpload = $("#fileUpload"),
+    $fileName = $("#fileName"),
+    $open = $("#open"),
+    $new = $("#new"),
+    $upload = $("#upload"),
+    $saveRevision = $("#saveRevision");
+
 function getFilename() {
-    return $("#fileName").text().replace("Filename: ", "");
-}
+    return $fileName.text().replace("Filename: ", "");
+};
 
-//setInterval(saveFile, 20000);
-
-function saveFile() {
-    if (getFilename() != "none") {
-
-        var data = new FormData();
-        data.append("filename", getFilename());
-        $.ajax({
-            url: "/saveFile",
-            type: "POST",
-            data: data,
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                console.log("File: " + getFilename() + " is saved");
-            },
-            error: function () {
-                alert("fail")
-            }
-        })
-    }
-}
-
-$("#new").click(function (e) {
+$new.on("click", function (e) {
     e.preventDefault();
 
     var filename = prompt("Enter filename");
@@ -45,7 +29,7 @@ $("#new").click(function (e) {
             leave();
             textarea.value = "";
             revision = 0;
-            $("#fileName").text("Filename: " + response);
+            $fileName.text("Filename: " + response);
             console.log("new rev= ", revision);
             join();
         },
@@ -55,16 +39,15 @@ $("#new").click(function (e) {
     })
 });
 
-$("#upload").click(function (e) {
+$upload.on("click", function (e) {
     e.preventDefault();
-
-    $('#fileupload').trigger('click');
-
+    $fileUpload.trigger('click');
 });
-$("#fileupload").change(function (e) {
+
+$fileUpload.on("change", function (e) {
     e.preventDefault();
 
-    var file = fileupload.files[0];
+    var file = fileUpload.files[0];
     var reader = new FileReader;
     if (file.size < 1000000) {
 
@@ -84,7 +67,7 @@ $("#fileupload").change(function (e) {
             processData: false,
             success: function (response) {
                 leave();
-                $("#fileName").text("Filename: " + response);
+                $fileName.text("Filename: " + response);
                 revision = 0;
                 console.log("load rev= ", revision);
                 join();
@@ -99,10 +82,10 @@ $("#fileupload").change(function (e) {
     }
 });
 
-$("#open").click(function (e) {
+$open.on("click", function (e) {
     e.preventDefault();
-    $("#open").hide();
-    $("#chooseFile").show();
+    $open.hide();
+    $chooseFile.show();
     $.ajax({
         url: "/listFiles",
         type: "GET",
@@ -111,7 +94,7 @@ $("#open").click(function (e) {
         processData: false,
         success: function (response) {
             response.forEach(function (item, i, arr) {
-                    $("#chooseFile").append(new Option(item, item));
+                $chooseFile.append(new Option(item, item));
                 }
             )
         },
@@ -120,7 +103,8 @@ $("#open").click(function (e) {
         }
     })
 });
-$("#chooseFile").change(function () {
+
+$chooseFile.on("change", function () {
     var filename = this.value;
     var data = new FormData();
     data.append("filename", filename);
@@ -135,15 +119,47 @@ $("#chooseFile").change(function () {
             leave();
             textarea.value = response[0];
             revision = response[1];
-            $("#fileName").text("Filename: " + filename);
+            $fileName.text("Filename: " + filename);
             console.log("choose rev= ", revision);
+            join();
+        },
+        error: function () {
+            alert("fail change")
+        }
+    })
+    $("#chooseFile option[value!='0']").remove();
+    $open.show();
+    $chooseFile.hide();
+});
+
+$chooseFile.on("blur", function () {
+    $("#chooseFile option[value!='0']").remove();
+    $open.show();
+    $chooseFile.hide();
+});
+
+$saveRevision.on("click", function () {
+    var formData = new FormData();
+    var file = new File([textarea.value], "", {
+        type: "text/plain"
+    });
+    formData.append('file', file, getFilename() + ":" + revision);
+    $.ajax({
+        url: "/uploadFile",
+        type: "POST",
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+            leave();
+            $fileName.text("Filename: " + response);
+            revision = 0;
+            console.log("load rev= ", revision);
             join();
         },
         error: function () {
             alert("fail")
         }
     })
-    $("#chooseFile option[value!='0']").remove();
-    $("#open").show();
-    $("#chooseFile").hide();
 });

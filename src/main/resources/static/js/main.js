@@ -1,17 +1,17 @@
 'use strict';
 
-var usernameForm = document.querySelector('#usernameForm');
-var messageForm = document.querySelector('#messageForm');
-var messageInput = document.querySelector('#message');
-var messageArea = document.querySelector('#messageArea');
-var connectingElement = document.querySelector('.connecting');
-var textarea = document.querySelector("#textarea");
-var fileupload = document.querySelector("#fileupload");
-var revision = 0;
+var usernameForm = document.querySelector('#usernameForm'),
+    messageForm = document.querySelector('#messageForm'),
+    messageInput = document.querySelector('#message'),
+    messageArea = document.querySelector('#messageArea'),
+    connectingElement = document.querySelector('.connecting'),
+    textarea = document.querySelector("#textarea"),
+    fileUpload = document.querySelector("#fileUpload");
 
-var stompClient = null;
-var username = null;
+var stompClient,
+    username;
 
+var $chatEditors = $("#chatEditors");
 var colors = [
     '#2196F3', '#32c787', '#00BCD4', '#ff5652',
     '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
@@ -40,7 +40,7 @@ function onConnected() {
 }
 
 function join() {
-    if (getFilename() == "none") {
+    if (fileIsPresent()) {
         return;
     }
     stompClient.send("/app/chat.addUser",
@@ -50,20 +50,20 @@ function join() {
 }
 
 function leave() {
-    if (getFilename() == "none") {
+    if ($saveRevision) {
         return;
     }
     while (messageArea.firstChild) {
         messageArea.removeChild(messageArea.firstChild);
     }
-    $("#chat-editors").text("Editors:")
+    $chatEditors.text("Editors:")
     stompClient.send("/app/chat.addUser",
         {},
         JSON.stringify({sender: username, filename: getFilename(), type: 'LEAVE'})
     )
 }
 
-function onError(error) {
+function onError() {
     connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
     connectingElement.style.color = 'red';
 }
@@ -88,7 +88,7 @@ function sendMessage(event) {
 function onMessageReceived(payload) {
     var message = JSON.parse(payload.body);
 
-    if (getFilename() == "nono" || getFilename() != message.filename) {
+    if (!fileIsPresent() || getFilename() != message.filename) {
         return;
     }
     if (message.type === 'DELETE' || message.type === 'INSERT') {
@@ -98,11 +98,11 @@ function onMessageReceived(payload) {
     }
     var messageElement = document.createElement('li');
     if (message.type === 'JOIN') {
-        $("#chat-editors").text($("#chat-editors").text().concat(" " + message.sender));
+        $chatEditors.text($chatEditors.text().concat(" " + message.sender));
         messageElement.classList.add('event-message');
         message.content = message.sender + ' joined!';
     } else if (message.type === 'LEAVE') {
-        $("#chat-editors").text($("#chat-editors").text().replace(" " + message.sender), "");
+        $chatEditors.text($chatEditors.text().replace(" " + message.sender), "");
         messageElement.classList.add('event-message');
         message.content = message.sender + ' left!';
 

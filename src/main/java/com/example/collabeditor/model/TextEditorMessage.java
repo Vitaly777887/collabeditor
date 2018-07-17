@@ -7,15 +7,15 @@ public class TextEditorMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Integer id;
+    private Integer id;
 
-    public Integer revision;
+    private Integer revision;
 
-    public MessageType type;
+    private MessageType type;
 
-    public String filename;
+    private String filename;
 
-    public String data;
+    private String data;
 
     @Column(name = "FROMQ")
     public Integer from;
@@ -24,8 +24,7 @@ public class TextEditorMessage {
 
     public enum MessageType {
         DELETE,
-        INSERT,
-        CHECK
+        INSERT
     }
 
     public String getFilename() {

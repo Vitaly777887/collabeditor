@@ -1,7 +1,6 @@
 package com.example.collabeditor.controller;
 
 import com.example.collabeditor.model.ChatMessage;
-import com.example.collabeditor.service.TextEditorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

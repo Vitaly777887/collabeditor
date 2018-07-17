@@ -1,14 +1,12 @@
 package com.example.collabeditor.service;
 
 import com.example.collabeditor.model.TextEditorMessage;
-import com.example.collabeditor.repository.FileRepository;
 import com.example.collabeditor.repository.TemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TemService {
@@ -16,9 +14,8 @@ public class TemService {
     @Autowired
     private TemRepository temRepository;
 
-    public boolean save(TextEditorMessage tem) {
-        return temRepository.save(tem) == tem;
-    }
+    @Autowired
+    private OTService otService;
 
     public List<TextEditorMessage> findByFilenameOrderByRevision(String filename) {
         List<TextEditorMessage> tems = temRepository.findByFilename(filename);
@@ -27,7 +24,16 @@ public class TemService {
     }
 
     public int findMaxRevisionByFilename(String filename) {
-        Optional<TextEditorMessage> max = findByFilenameOrderByRevision(filename).stream().max(Comparator.comparing(TextEditorMessage::getRevision));
-        return max.isPresent() ? max.get().getRevision() : 0;
+        return findByFilenameOrderByRevision(filename).size();
+    }
+
+    public TextEditorMessage applyNewRevisionsAndSave(TextEditorMessage tem) {
+        TextEditorMessage[] newTEM = otService.getNewTEM(tem.getFilename(), tem.getRevision());
+
+        for (TextEditorMessage tem2 : newTEM) {
+            otService.inc(tem2, tem);
+        }
+        tem.setRevision(tem.getRevision() + 1 + newTEM.length);
+        return temRepository.save(tem);
     }
 }

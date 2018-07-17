@@ -4,10 +4,10 @@ import com.example.collabeditor.model.FileObject;
 import com.example.collabeditor.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 public class FileService {
@@ -22,7 +22,17 @@ public class FileService {
         return fileRepository.findByFilename(filename);
     }
 
-    public List<FileObject> findAll(){
-      return  StreamSupport.stream(fileRepository.findAll().spliterator(), false).collect(Collectors.toList());
+    public List<FileObject> findAll() {
+        return fileRepository.findAll();
+    }
+
+    public FileObject createFileObject(MultipartFile file) throws IOException {
+        return new FileObject(file.getOriginalFilename(), new String(file.getBytes(), "Windows-1251"));
+    }
+
+    public String[] getFileNames() {
+        return findAll().stream()
+                .map(s -> s.getFilename().replace(".txt", ""))
+                .toArray(String[]::new);
     }
 }

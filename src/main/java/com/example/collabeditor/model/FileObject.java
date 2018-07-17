@@ -8,12 +8,12 @@ public class FileObject {
     @Id
     @Column(name = "fileId")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Integer id;
+    private Integer id;
 
-    public String filename;
+    private String filename;
 
     @Lob()
-    public String file;
+    private String file;
 
     public Integer getId() {
         return id;

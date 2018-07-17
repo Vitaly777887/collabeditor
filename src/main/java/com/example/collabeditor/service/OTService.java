@@ -4,24 +4,22 @@ import com.example.collabeditor.model.TextEditorMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.StreamSupport;
-
 @Service
-public class TextEditorService {
+public class OTService {
 
     @Autowired
     private TemService temService;
 
     public TextEditorMessage inc(TextEditorMessage serverChange, TextEditorMessage localChange) {
 
-        if (localChange.type == TextEditorMessage.MessageType.INSERT) {
+        if (localChange.getType() == TextEditorMessage.MessageType.INSERT) {
             if (serverChange.getTo() >= localChange.getTo()) {
                 int delta = serverChange.getData().length();
                 localChange.setFrom(localChange.getFrom() + delta);
                 localChange.setTo(localChange.getTo() + delta);
             }
 
-        } else if (localChange.type == TextEditorMessage.MessageType.DELETE) {
+        } else if (localChange.getType() == TextEditorMessage.MessageType.DELETE) {
             int delta = serverChange.getData() == null ? 1 : serverChange.getData().length();
             if (serverChange.getTo() >= localChange.getTo()) {
                 localChange.setFrom(localChange.getFrom() - delta);
@@ -33,7 +31,7 @@ public class TextEditorService {
     }
 
     public TextEditorMessage[] getNewTEM(String filename, Integer revision) {
-        return StreamSupport.stream(temService.findByFilenameOrderByRevision(filename).spliterator(), false)
+        return temService.findByFilenameOrderByRevision(filename).stream()
                 .filter(tem -> tem.getRevision() > revision).toArray(TextEditorMessage[]::new);
     }
 
@@ -46,10 +44,10 @@ public class TextEditorService {
     }
 
     public String apply(String file, TextEditorMessage tem) {
-        if (tem.type == TextEditorMessage.MessageType.INSERT) {
-            return file.substring(0, tem.from) + tem.data
+        if (tem.getType() == TextEditorMessage.MessageType.INSERT) {
+            return file.substring(0, tem.from) + tem.getData()
                     + ((file.length() > 2) ? file.substring(tem.from) : "");
-        } else if (tem.type == TextEditorMessage.MessageType.DELETE) {
+        } else if (tem.getType() == TextEditorMessage.MessageType.DELETE) {
             return file.substring(0, tem.to)
                     + ((file.length() > 2) ? file.substring(tem.from) : "");
         }
