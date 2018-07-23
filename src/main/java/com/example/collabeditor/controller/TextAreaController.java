@@ -21,20 +21,9 @@ public class TextAreaController {
     @SendTo("/topic/public")
     public synchronized TextEditorMessage sendChanges(@Payload String filename, @Payload TextEditorMessage tem) throws IOException {
         //Fix filename
-        ObjectMapper mapper = new ObjectMapper();
-        StringF s = mapper.readValue(filename, StringF.class);
-        return temService.applyNewRevisionsAndSave(tem, s.getFilename());
-    }
-
-    class StringF {
-        public String filename;
-
-        public String getFilename() {
-            return filename;
-        }
-
-        public void setFilename(String filename) {
-            this.filename = filename;
-        }
+        //TextEditorMessage теперь не содержит поля filename
+        //filename в данном случае выглядит как передаваемый JSON-объект
+        //Какая аннотация должна быть перед filename?
+        return temService.applyNewRevisionsAndSave(tem, filename);
     }
 }
