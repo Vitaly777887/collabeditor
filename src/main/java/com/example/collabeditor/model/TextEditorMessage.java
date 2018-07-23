@@ -18,13 +18,17 @@ public class TextEditorMessage {
     private String data;
 
     @Column(name = "FROMQ")
-    public Integer from;
+    private Integer from;
 
-    public Integer to;
+    private Integer to;
 
     public enum MessageType {
         DELETE,
         INSERT
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 
     public String getFilename() {

@@ -12,7 +12,7 @@ var $chooseFile = $("#chooseFile"),
 
 function getFilename() {
     return $fileName.text().replace("Filename: ", "");
-};
+}
 
 function getListFiles() {
     var xhr = new XMLHttpRequest();
@@ -29,6 +29,9 @@ $new.on("click", function (e) {
     e.preventDefault();
 
     var filename = prompt("Enter filename");
+    if (filename == null) {
+        return;
+    }
     //err
     if (getListFiles().includes(filename)) {
         alert("Filename is present. Change filename");
@@ -50,6 +53,7 @@ $new.on("click", function (e) {
             $fileName.text("Filename: " + response);
             console.log("new rev= ", revision);
             join();
+            hideRevisionName();
         },
         error: function () {
             alert("fail")
@@ -69,7 +73,7 @@ $fileUpload.on("change", function (e) {
     var reader = new FileReader;
     if (file.size < 1000000) {
 
-        reader.onloadend = function (evt) {
+        reader.onloadend = function () {
             textarea.value = reader.result;
         };
         reader.readAsText(file, 'cp1251'); // for windows
@@ -89,6 +93,7 @@ $fileUpload.on("change", function (e) {
                 revision = 0;
                 console.log("load rev= ", revision);
                 join();
+                hideRevisionName();
             },
             error: function () {
                 alert("fail uploadFile")
@@ -111,6 +116,7 @@ $open.on("click", function (e) {
         contentType: false,
         processData: false,
         success: function (response) {
+            $("#chooseFile option[value!='0']").remove();
             response.forEach(function (item, i, arr) {
                 $chooseFile.append(new Option(item, item));
                 }
@@ -140,18 +146,17 @@ $chooseFile.on("change", function () {
             $fileName.text("Filename: " + filename);
             console.log("choose rev= ", revision);
             join();
+            hideRevisionName();
         },
         error: function () {
             alert("fail chooseFile")
         }
     });
-    $("#chooseFile option[value!='0']").remove();
     $open.show();
     $chooseFile.hide();
 });
 
 $chooseFile.on("blur", function () {
-    $("#chooseFile option[value!='0']").remove();
     $open.show();
     $chooseFile.hide();
 });
@@ -160,13 +165,17 @@ $openRevision.on("click", function (e) {
     e.preventDefault();
     $openRevision.hide();
     $chooseFileRevision.show();
+    var data = new FormData();
+    data.append("filename", getFilename());
     $.ajax({
         url: "/listFileRevisions",
-        type: "GET",
+        type: "POST",
         cache: false,
+        data: data,
         contentType: false,
         processData: false,
         success: function (response) {
+            $("#chooseFileRevision option[value!='0']").remove();
             response.forEach(function (item, i, arr) {
                     $chooseFileRevision.append(new Option(item, item));
                 }
@@ -179,9 +188,9 @@ $openRevision.on("click", function (e) {
 });
 
 $chooseFileRevision.on("change", function () {
-    var filename = this.value;
+    var fileRevisionName = this.value;
     var data = new FormData();
-    data.append("filename", filename);
+    data.append("name", fileRevisionName);
     $.ajax({
         url: "/chooseFileRevisions",
         type: "POST",
@@ -190,30 +199,36 @@ $chooseFileRevision.on("change", function () {
         contentType: false,
         processData: false,
         success: function (response) {
-
+            textarea.value = response;
+            console.log("choose filerev= ", revision);
+            setRevisionNameAndShow(fileRevisionName);
         },
         error: function () {
             alert("fail chooseFileRevisions")
         }
     });
-    $("#chooseFileRevision option[value!='0']").remove();
     $openRevision.show();
     $chooseFileRevision.hide();
 });
 
 $chooseFileRevision.on("blur", function () {
-    $("#chooseFileRevision option[value!='0']").remove();
     $openRevision.show();
     $chooseFileRevision.hide();
 });
 
-
 $saveRevision.on("click", function () {
-    var filename = prompt("Enter name of revision", getFilename() + ":" + revision);
+    if (!isNotRevisionFile()) {
+        return;
+    }
+    var name = prompt("Enter name of revision", getFilename() + ":" + revision);
+    if (name == null) {
+        return;
+    }
     var formData = new FormData();
 
-    formData.append('filename', filename);
+    formData.append('filename', getFilename());
     formData.append('revision', revision);
+    formData.append("name", name);
     $.ajax({
         url: "/saveFileRevision",
         type: "POST",
@@ -222,7 +237,7 @@ $saveRevision.on("click", function () {
         contentType: false,
         processData: false,
         success: function (response) {
-            console.log("load rev= ", revision);
+            console.log("save rev= ", revision);
         },
         error: function () {
             alert("fail saveRevision")

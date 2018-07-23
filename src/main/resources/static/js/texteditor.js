@@ -1,9 +1,11 @@
 'use strict';
 
 var revision = 0;
+var isRevisionFile = false;
 var textarea = document.getElementById('textarea');
 var $textarea = $("#textarea");
-
+const DELETE = "DELETE";
+const INSERT = "INSERT"
 $(function () {
     if ($.cookie("nickname")) {
         document.querySelector('#name').value = $.cookie("nickname");
@@ -12,14 +14,29 @@ $(function () {
 });
 
 function fileIsPresent() {
-    return getFilename() !== "none" && getFilename() !== "null";
+    return getFilename() !== "none" && getFilename() !== "null" && isNotRevisionFile();
+}
+
+function setRevisionNameAndShow(revisionName) {
+    isRevisionFile = true;
+    $("#FileRevisionName").text("RevisionName: " + revisionName);
+    $("#FileRevisionName").show();
+}
+
+function hideRevisionName() {
+    isRevisionFile = false;
+    $("#FileRevisionName").hide();
+}
+
+function isNotRevisionFile() {
+    return !isRevisionFile;
 }
 
 function apply(ot) {
     var text = textarea.value;
     var caret = $textarea.caret();
     console.log("OT: " + ot.data);
-    if (ot.type === "INSERT") {
+    if (ot.type === INSERT) {
 
         textarea.value = text.substring(0, ot.from) + ot.data + text.substring(ot.from);
         if (caret >= ot.from) {
@@ -29,7 +46,7 @@ function apply(ot) {
             $textarea.caret(caret);
         }
     }
-    else if (ot.type === "DELETE") {
+    else if (ot.type === DELETE) {
         textarea.value = text.substring(0, ot.to) + text.substring(ot.from);
         if (caret > ot.to) {
             $textarea.caret(caret + ot.from - ot.to - 2);
@@ -43,7 +60,7 @@ function apply(ot) {
 function sent(type, data, caretFrom) {
     var textEditorMessage;
 
-    if (type === "DELETE") {
+    if (type === DELETE) {
         textEditorMessage = {
             from: caretFrom,
             to: caretFrom - data.length,
@@ -52,7 +69,7 @@ function sent(type, data, caretFrom) {
             revision: revision
         };
     }
-    else if (type === "INSERT") {
+    else if (type === INSERT) {
         textEditorMessage = {
             from: caretFrom,
             to: caretFrom + data.length,
@@ -70,7 +87,7 @@ $textarea.on("keydown", function (e) {
         var caret = $textarea.caret();
 
         if (caret) {
-            sent("DELETE", " ", caret);
+            sent(DELETE, " ", caret);
         }
         e.preventDefault();
     }
@@ -84,11 +101,11 @@ $textarea.on('paste cut', function (e) {
 
         if (e.type === "paste") {
             data = e.originalEvent.clipboardData.getData('text');
-            sent("INSERT", data, caret);
+            sent(INSERT, data, caret);
         }
         else {
             data = window.getSelection().toString();
-            sent("DELETE", data, caret + data.length);
+            sent(DELETE, data, caret + data.length);
         }
     }
     e.preventDefault();
@@ -102,7 +119,7 @@ $textarea.on("keypress", function (e) {
             return true;
         }
         var caret = $textarea.caret();
-        sent("INSERT", String.fromCharCode(e.keyCode), caret);
+        sent(INSERT, String.fromCharCode(e.keyCode), caret);
     }
     e.preventDefault();
 });

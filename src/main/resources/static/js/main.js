@@ -11,7 +11,7 @@ var usernameForm = document.querySelector('#usernameForm'),
 var stompClient,
     username;
 
-var $chatEditors = $("#chatEditors");
+var $chatEditors = $("#chat-editors");
 var colors = [
     '#2196F3', '#32c787', '#00BCD4', '#ff5652',
     '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
@@ -40,7 +40,7 @@ function onConnected() {
 }
 
 function join() {
-    if (fileIsPresent()) {
+    if (!fileIsPresent()) {
         return;
     }
     stompClient.send("/app/chat.addUser",
@@ -50,13 +50,13 @@ function join() {
 }
 
 function leave() {
-    if ($saveRevision) {
+    if (!fileIsPresent()) {
         return;
     }
     while (messageArea.firstChild) {
         messageArea.removeChild(messageArea.firstChild);
     }
-    $chatEditors.text("Editors:")
+    $chatEditors.text("Editors:");
     stompClient.send("/app/chat.addUser",
         {},
         JSON.stringify({sender: username, filename: getFilename(), type: 'LEAVE'})
@@ -91,7 +91,7 @@ function onMessageReceived(payload) {
     if (!fileIsPresent() || getFilename() != message.filename) {
         return;
     }
-    if (message.type === 'DELETE' || message.type === 'INSERT') {
+    if (message.type === DELETE || message.type === INSERT) {
         apply(message);
         revision = message.revision;
         return;

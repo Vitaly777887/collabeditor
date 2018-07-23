@@ -44,7 +44,7 @@ public class FileController {
 
     @RequestMapping(value = "/chooseFile", method = RequestMethod.POST)
     public String[] chooseFile(@RequestParam("filename") String filename) {
-        return new String[]{otService.apply(filename, fileService.findByFilename(filename).getFile())
+        return new String[]{otService.applyAllRevision(filename, fileService.findByFilename(filename).getFile())
                 , "" + temService.findMaxRevisionByFilename(filename)};
     }
 }

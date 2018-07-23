@@ -36,4 +36,8 @@ public class TemService {
         tem.setRevision(tem.getRevision() + 1 + newTEM.length);
         return temRepository.save(tem);
     }
+
+    public List<TextEditorMessage> findByFilenameAndRevisionIsLessThanOrderByRevisionAsc(String filename, int revision) {
+        return temRepository.findByFilenameAndRevisionIsLessThanOrderByRevision(filename, revision);
+    }
 }
