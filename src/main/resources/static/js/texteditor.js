@@ -12,7 +12,7 @@ $(function () {
 });
 
 function fileIsPresent() {
-    return getFilename() !== "none";
+    return getFilename() !== "none" && getFilename() !== "null";
 }
 
 function apply(ot) {

@@ -6,16 +6,34 @@ var $chooseFile = $("#chooseFile"),
     $open = $("#open"),
     $new = $("#new"),
     $upload = $("#upload"),
-    $saveRevision = $("#saveRevision");
+    $saveRevision = $("#saveRevision"),
+    $openRevision = $("#openRevision"),
+    $chooseFileRevision = $("#chooseFileRevision");
 
 function getFilename() {
     return $fileName.text().replace("Filename: ", "");
 };
 
+function getListFiles() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/listFiles', false);
+    xhr.send();
+    if (xhr.status != 200) {
+        alert(xhr.status + ': ' + xhr.statusText);
+    } else {
+        return xhr.responseText;
+    }
+}
+
 $new.on("click", function (e) {
     e.preventDefault();
 
     var filename = prompt("Enter filename");
+    //err
+    if (getListFiles().includes(filename)) {
+        alert("Filename is present. Change filename");
+        return;
+    }
     var data = new FormData();
     data.append("filename", filename);
     $.ajax({
@@ -73,7 +91,7 @@ $fileUpload.on("change", function (e) {
                 join();
             },
             error: function () {
-                alert("fail")
+                alert("fail uploadFile")
             }
         })
     }
@@ -124,9 +142,9 @@ $chooseFile.on("change", function () {
             join();
         },
         error: function () {
-            alert("fail change")
+            alert("fail chooseFile")
         }
-    })
+    });
     $("#chooseFile option[value!='0']").remove();
     $open.show();
     $chooseFile.hide();
@@ -138,28 +156,77 @@ $chooseFile.on("blur", function () {
     $chooseFile.hide();
 });
 
-$saveRevision.on("click", function () {
-    var formData = new FormData();
-    var file = new File([textarea.value], "", {
-        type: "text/plain"
-    });
-    formData.append('file', file, getFilename() + ":" + revision);
+$openRevision.on("click", function (e) {
+    e.preventDefault();
+    $openRevision.hide();
+    $chooseFileRevision.show();
     $.ajax({
-        url: "/uploadFile",
+        url: "/listFileRevisions",
+        type: "GET",
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+            response.forEach(function (item, i, arr) {
+                    $chooseFileRevision.append(new Option(item, item));
+                }
+            )
+        },
+        error: function () {
+            alert("fail openRevision")
+        }
+    })
+});
+
+$chooseFileRevision.on("change", function () {
+    var filename = this.value;
+    var data = new FormData();
+    data.append("filename", filename);
+    $.ajax({
+        url: "/chooseFileRevisions",
+        type: "POST",
+        data: data,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+
+        },
+        error: function () {
+            alert("fail chooseFileRevisions")
+        }
+    });
+    $("#chooseFileRevision option[value!='0']").remove();
+    $openRevision.show();
+    $chooseFileRevision.hide();
+});
+
+$chooseFileRevision.on("blur", function () {
+    $("#chooseFileRevision option[value!='0']").remove();
+    $openRevision.show();
+    $chooseFileRevision.hide();
+});
+
+
+$saveRevision.on("click", function () {
+    var filename = prompt("Enter name of revision", getFilename() + ":" + revision);
+    var formData = new FormData();
+
+    formData.append('filename', filename);
+    formData.append('revision', revision);
+    $.ajax({
+        url: "/saveFileRevision",
         type: "POST",
         data: formData,
         cache: false,
         contentType: false,
         processData: false,
         success: function (response) {
-            leave();
-            $fileName.text("Filename: " + response);
-            revision = 0;
             console.log("load rev= ", revision);
-            join();
         },
         error: function () {
-            alert("fail")
+            alert("fail saveRevision")
         }
     })
 });
+

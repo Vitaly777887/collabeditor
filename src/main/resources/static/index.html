@@ -37,12 +37,17 @@
                 <div id="textEditor-page">
                     <button type="button" id="new" class="btn">New</button>
                     <button type="button" id="upload" class="btn">Upload</button>
+                    <input type="file" id="fileUpload" hidden accept="text/plain"/>
                     <button type="button" id="open" class="btn">Open</button>
                     <select id="chooseFile" style="display: none;">
                         <option value="0">Choose file</option>
                     </select>
-                    <input type="file" id="fileUpload" hidden accept="text/plain"/>
+
                     <button type="button" id="saveRevision" class="btn">Save revision</button>
+                    <button type="button" id="openRevision" class="btn">Open revision</button>
+                    <select id="chooseFileRevision" style="display: none;">
+                        <option value="0">Choose revision of file</option>
+                    </select>
                     <h4 id="fileName">Filename: none</h4>
                     <textarea id="textarea"></textarea>
                 </div>
