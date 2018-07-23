@@ -3,32 +3,49 @@ package com.example.collabeditor.model;
 import javax.persistence.*;
 
 @Entity
+@Table(name = "tems", uniqueConstraints = {@UniqueConstraint(columnNames = {"revision", "file_object_id"}, name = "tem_unique_revision_file_object_id_idx")})
 public class TextEditorMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "revision", nullable = false)
     private Integer revision;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "message_type", nullable = false)
     private MessageType type;
 
-    private String filename;
-
+    @Column(name = "data", nullable = false)
     private String data;
 
-    @Column(name = "FROMQ")
+    @Column(name = "fromq", nullable = false)
     public Integer from;
 
+    @Column(name = "to", nullable = false)
     public Integer to;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "file_object_id", nullable = false)
+    // @OnDelete(action = OnDeleteAction.CASCADE)
+    private FileObject fileObject;
 
     public enum MessageType {
         DELETE,
         INSERT
     }
 
+    public FileObject getFileObject() {
+        return fileObject;
+    }
+
+    public void setFileObject(FileObject fileObject) {
+        this.fileObject = fileObject;
+    }
+
     public String getFilename() {
-        return filename;
+        return fileObject.getFilename();
     }
 
     public MessageType getType() {

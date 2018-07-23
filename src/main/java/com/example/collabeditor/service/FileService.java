@@ -1,6 +1,7 @@
 package com.example.collabeditor.service;
 
 import com.example.collabeditor.model.FileObject;
+import com.example.collabeditor.model.TextEditorMessage;
 import com.example.collabeditor.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Service
 public class FileService {
+
     @Autowired
     private FileRepository fileRepository;
 
@@ -34,5 +36,9 @@ public class FileService {
         return findAll().stream()
                 .map(s -> s.getFilename().replace(".txt", ""))
                 .toArray(String[]::new);
+    }
+
+    public List<TextEditorMessage> getTems(String filename) {
+        return findByFilename(filename).getTems();
     }
 }
