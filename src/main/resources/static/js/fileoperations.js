@@ -220,7 +220,7 @@ $saveRevision.on("click", function () {
     if (!isNotRevisionFile()) {
         return;
     }
-    var name = prompt("Enter name of revision", getFilename() + ":" + revision);
+    var name = prompt("Enter name of revision", getFilename() + " rev:" + revision + " date:" + new Date().toDateString());
     if (name == null) {
         return;
     }
@@ -237,7 +237,7 @@ $saveRevision.on("click", function () {
         contentType: false,
         processData: false,
         success: function (response) {
-            console.log("save rev= ", revision);
+            console.log("save fileRev= ", response);
         },
         error: function () {
             alert("fail saveRevision")

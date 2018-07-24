@@ -17,7 +17,7 @@ public class FileRevisionController {
     public String saveFileRevision(@RequestParam("filename") String filename, @RequestParam("revision") int revision,
                                    @RequestParam("name") String name) {
         fileRevisionService.save(new FileRevision(name, revision, filename));
-        return filename;
+        return name;
     }
 
     @RequestMapping("/listFileRevisions")
